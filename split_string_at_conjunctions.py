@@ -3,11 +3,17 @@ import spacy
 nlp = spacy.load("en_core_web_trf")
 
 def is_valid_subject_comp(token):
-    # spacy pos types: https://github.com/explosion/spaCy/blob/master/spacy/glossary.py
+    # Uses spacy's token.pos_ and token.dep_ values to identify if a token is a potential subject component.
+    # In this case, tokens are words in the sentence.
+    # The pos_ value stands for "part of speech". The potential values can be seen here: https://github.com/explosion/spaCy/blob/master/spacy/glossary.py.
+    # Potential pos_ values are any nouns and adjectives as the adjectives may describe individual subjects.
+    # The dep_ value stands for "dependencies" and describes the dependency relationships between tokens in the sentences.
+    # The dependencies help identify if words are connected in the sentence. If the dependency is ROOT it means the token
+    # may be related to multiple other tokens in the string so it would most likely be a descriptor as opposed to a subject.
     return token.pos_ in ["ADJ", "NOUN", "PROPN"] and token.dep_ != "ROOT"
 
 def split_string_at_conjunctions(string_to_split):
-    # 0. Return immediately if not conjunctions are present in the string
+    # 0. Return immediately if no conjunctions are present in the string
     if " AND " not in string_to_split.upper(): return [string_to_split]
     
     doc = nlp(string_to_split)
@@ -39,7 +45,7 @@ def split_string_at_conjunctions(string_to_split):
     split_string_1 = f"{leading_descriptors}{subject_1}{trailing_descriptors}"
     split_string_2 = f"{leading_descriptors}{subject_2}{trailing_descriptors}"
 
-    # 6. Make recursive call for the cases where there were more than one conjunctions in the sentance
+    # 6. Make recursive calls for the cases where there were multiple conjunctions in the sentence
     split_strings = []
     split_strings += [split_string_1] if " AND " not in split_string_1.upper() else split_string_at_conjunctions(split_string_1)
     split_strings += [split_string_2] if " AND " not in split_string_2.upper() else split_string_at_conjunctions(split_string_2)
