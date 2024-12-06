@@ -17,18 +17,29 @@ def split_string_at_conjunctions(string_to_split):
     if " AND " not in string_to_split.upper(): return [string_to_split]
     
     doc = nlp(string_to_split)
-    and_ind = string_to_split.upper().split(" ").index("AND")
+    and_ind = [str(token).upper() for token in doc].index("AND")
     
     # 1. Get first subject
     subject_parts = []
+    token_to_append = None
     for token in reversed(doc[:and_ind]):
+        if "'" in str(token):
+            token_to_append = str(token)
+            continue
         if not is_valid_subject_comp(token) and len(subject_parts) > 0: break
-        subject_parts.insert(0, str(token))
+        token = str(token)
+        if token_to_append is not None:
+            token += token_to_append
+            token_to_append = None
+        subject_parts.insert(0, token)
     subject_1 = " ".join(subject_parts).strip()
 
     # 2. Get second subject
     subject_parts = []
     for token in doc[and_ind + 1:]:
+        if "'" in str(token):
+            subject_parts[-1] += str(token)
+            continue
         if not is_valid_subject_comp(token) and len(subject_parts) > 0: break
         subject_parts.append(str(token))
     subject_2 = " ".join(subject_parts).strip()
@@ -38,7 +49,7 @@ def split_string_at_conjunctions(string_to_split):
     if leading_descriptors != "": leading_descriptors += " "
 
     # 4. Get trailing descriptors
-    trailing_descriptors = string_to_split.split(subject_2)[1].strip()
+    trailing_descriptors = string_to_split.split(subject_2)[-1].strip()
     if trailing_descriptors != "": trailing_descriptors = " " + trailing_descriptors
 
     # 5. Form split strings

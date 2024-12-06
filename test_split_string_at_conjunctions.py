@@ -99,6 +99,12 @@ class TestSplitStringAtConjunctions(unittest.TestCase):
         self.assertEqual("apples", split_string[0])
         self.assertEqual("bananas", split_string[1])
 
+    def test_split_with_quotes(self):        
+        string_to_split = "WOMEN'S AND MEN'S APPAREL"
+        split_string = split_string_at_conjunctions(string_to_split)
+        self.assertEqual("WOMEN'S APPAREL", split_string[0])
+        self.assertEqual("MEN'S APPAREL", split_string[1])
+
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
